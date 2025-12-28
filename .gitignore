@@ -1,0 +1,69 @@
+# =====================
+# Python
+# =====================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# =====================
+# Django
+# =====================
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# Django migrations (optional – see note)
+# */migrations/*
+# !*/migrations/__init__.py
+
+# =====================
+# Environment variables
+# =====================
+.env
+.env.*
+*.env
+
+# =====================
+# Virtual Environments
+# =====================
+venv/
+env/
+.venv/
+ENV/
+.python-version
+
+# =====================
+# IDEs & Editors
+# =====================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# =====================
+# OS files
+# =====================
+.DS_Store
+Thumbs.db
+
+# =====================
+# Testing / Coverage
+# =====================
+htmlcov/
+.coverage
+.coverage.*
+.pytest_cache/
+.tox/
+.nox/
+
+# =====================
+# Build / Packaging
+# =====================
+build/
+dist/
+*.e*
