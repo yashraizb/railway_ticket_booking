@@ -1,11 +1,10 @@
 from django.http import JsonResponse
-from django.db.models import Q, Count, F, OuterRef, Subquery, Exists
-from django.db import models, transaction
 from rest_framework.views import APIView
-from .models import Train, RouteStation, Station, Seat
+from .models import Train
 from .serializer import TrainSerializer, SearchTrainSerializer, BookSeatSerializer
 from rest_framework.permissions import AllowAny
 from .src.service.SeatService import SeatService
+from .src.service.TrainService import TrainService
 from .src.domain.JourneyDetailHandler import JourneyDetailHandler
 
 
@@ -38,44 +37,8 @@ class SearchTrainsView(APIView):
                 {"errors": searchTrainSerializer.errors, "message": "Search failed"}, status=400
             )
 
-        source = searchTrainSerializer.validated_data["source"]
-        destination = searchTrainSerializer.validated_data["destination"]
-        journey_date = searchTrainSerializer.validated_data["journey_date"]
-        journey_details.set_journey_date(journey_date)
-
-        try:
-            src_station = Station.objects.get(name=source)
-            journey_details.set_src_station(src_station)
-            dest_station = Station.objects.get(name=destination)
-            journey_details.set_dest_station(dest_station)
-        except Station.DoesNotExist:
-            return JsonResponse({"message": "Station not found"}, status=404)
-
-        trains = (
-            Train.objects.filter(
-                trips__journey_date=journey_date,  # must run on date
-                route_stations__station__in=[src_station, dest_station],
-            )
-            .annotate(
-                matching_stops=Count(
-                    "route_stations",
-                    filter=Q(route_stations__station__in=[src_station, dest_station]),
-                )
-            )
-            .filter(matching_stops=2)  # must contain both stops
-            .annotate(
-                src_seq=models.Min(
-                    "route_stations__sequence",
-                    filter=Q(route_stations__station=src_station),
-                ),
-                dest_seq=models.Min(
-                    "route_stations__sequence",
-                    filter=Q(route_stations__station=dest_station),
-                ),
-            )
-            .filter(src_seq__lt=F("dest_seq"))  # must go in correct order
-            .distinct()
-        )
+        trainService = TrainService()
+        trains = trainService.get_trains(searchTrainSerializer, journey_details)
 
         if not trains.exists():
             return JsonResponse(
@@ -83,7 +46,6 @@ class SearchTrainsView(APIView):
             )
 
         trainSerializer = TrainSerializer(trains, many=True)
-        
 
         # ------------------------
         # Get available seats
