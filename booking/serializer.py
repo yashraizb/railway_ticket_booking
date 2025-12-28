@@ -1,0 +1,20 @@
+from rest_framework import serializers
+
+
+class TrainSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=50)
+    number = serializers.IntegerField()
+
+
+class SearchTrainSerializer(serializers.Serializer):
+    source = serializers.CharField(max_length=50, required=True)
+    destination = serializers.CharField(max_length=50, required=True)
+    journey_date = serializers.DateField(required=True)
+
+
+class BookSeatSerializer(serializers.Serializer):
+    train_number = serializers.IntegerField(required=True)
+    journey_date = serializers.DateField(required=True)
+    source = serializers.CharField(max_length=50, required=True)
+    destination = serializers.CharField(max_length=50, required=True)
+    coach_type = serializers.CharField(max_length=20, required=True)
