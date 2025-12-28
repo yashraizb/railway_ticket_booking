@@ -5,8 +5,8 @@ from rest_framework.views import APIView
 from .models import Train, RouteStation, Station, Seat
 from .serializer import TrainSerializer, SearchTrainSerializer, BookSeatSerializer
 from rest_framework.permissions import AllowAny
-from .src.strategy.seat.SeatStrategy import SeatStrategy
-from .src.strategy.seat.SimpleSeat import SimpleSeat
+from .src.service.SeatService import SeatService
+from .src.domain.JourneyDetailHandler import JourneyDetailHandler
 
 
 # Create your views here.
@@ -31,19 +31,23 @@ class SearchTrainsView(APIView):
 
     def get(self, request):
 
-        serializer = SearchTrainSerializer(data=request.query_params)
-        if not serializer.is_valid():
+        journey_details = JourneyDetailHandler()
+        searchTrainSerializer = SearchTrainSerializer(data=request.query_params)
+        if not searchTrainSerializer.is_valid():
             return JsonResponse(
-                {"errors": serializer.errors, "message": "Search failed"}, status=400
+                {"errors": searchTrainSerializer.errors, "message": "Search failed"}, status=400
             )
 
-        source = serializer.validated_data["source"]
-        destination = serializer.validated_data["destination"]
-        journey_date = serializer.validated_data["journey_date"]
+        source = searchTrainSerializer.validated_data["source"]
+        destination = searchTrainSerializer.validated_data["destination"]
+        journey_date = searchTrainSerializer.validated_data["journey_date"]
+        journey_details.set_journey_date(journey_date)
 
         try:
             src_station = Station.objects.get(name=source)
+            journey_details.set_src_station(src_station)
             dest_station = Station.objects.get(name=destination)
+            journey_details.set_dest_station(dest_station)
         except Station.DoesNotExist:
             return JsonResponse({"message": "Station not found"}, status=404)
 
@@ -78,23 +82,21 @@ class SearchTrainsView(APIView):
                 {"message": "No trains found for given criteria"}, status=404
             )
 
-        serializer = TrainSerializer(trains, many=True)
-        data = {
-            "source": source,
-            "destination": destination,
-            "journey_date": journey_date,
-        }
+        trainSerializer = TrainSerializer(trains, many=True)
+        
 
         # ------------------------
         # Get available seats
         # ------------------------
-        seatStrategy: SeatStrategy = SimpleSeat()
+        seatService = SeatService()
 
         for i, train in enumerate(trains):
-            data["train"] = train
-            serializer.data[i]["available_seats"] = seatStrategy.get_available_seats(data)
+            journey_details.set_train(train)
+            trainSerializer.data[i]["available_seats"] = seatService.get_seats(
+                journey_details
+            )
 
-        return JsonResponse({"trains": serializer.data}, status=200)
+        return JsonResponse({"trains": trainSerializer.data}, status=200)
 
 
 class BookSeatView(APIView):
