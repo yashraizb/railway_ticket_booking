@@ -1,9 +1,14 @@
+from booking.models import BookingToInvoice
+
+
 class JourneyDetailHandler:
     def __init__(self):
         self.src_station = None
         self.dest_station = None
         self.journey_date = None
         self.train = None
+        self.trip = None
+        self.booking = None
     
     def set_src_station(self, src_station):
         self.src_station = src_station
@@ -28,3 +33,15 @@ class JourneyDetailHandler:
     
     def get_train(self):
         return self.train
+
+    def get_trip(self):
+        return self.trip
+
+    def set_trip(self, trip):
+        self.trip = trip
+    
+    def get_booking(self) -> BookingToInvoice:
+        return self.booking
+
+    def set_booking(self, booking):
+        self.booking = booking

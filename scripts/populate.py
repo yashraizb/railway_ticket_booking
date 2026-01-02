@@ -10,7 +10,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "railway_ticket_booking.settings")
 django.setup()
 
-from booking.models import Train, Station, RouteStation, Trip, Coach, Seat  # import your models
+from booking.models import Train, Station, RouteStation, Trip, Coach, Seat, Bookings, BookingToInvoice, Invoice
 
 Seat.objects.all().delete()
 Coach.objects.all().delete()
@@ -18,6 +18,9 @@ RouteStation.objects.all().delete()
 Trip.objects.all().delete()
 Train.objects.all().delete()
 Station.objects.all().delete()
+Bookings.objects.all().delete()
+Invoice.objects.all().delete()
+BookingToInvoice.objects.all().delete()
 
 # Read JSON data
 with open("scripts/railways_data.json", "r") as file:

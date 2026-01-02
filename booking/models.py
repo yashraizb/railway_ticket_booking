@@ -101,3 +101,29 @@ class RouteStation(models.Model):
         unique_together = ("train", "station")
         ordering = ["sequence"]
 
+class Bookings(models.Model):
+    booking_id = models.BigIntegerField(default=0)
+    train_number = models.BigIntegerField()
+    source_name = models.CharField(max_length=50)
+    destination_name = models.CharField(max_length=50)
+    journey_date = models.DateField()
+    coach_type = models.CharField(max_length=2)
+    seat_number = models.IntegerField()
+    passenger_name = models.CharField(max_length=50)
+    passenger_age = models.IntegerField()
+    passenger_gender = models.CharField(max_length=1)
+
+
+class BookingToInvoice(models.Model):
+    booking_id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    invoice_id = models.BigIntegerField(default=0)
+
+
+class Invoice(models.Model):
+    invoice_id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    train_number = models.BigIntegerField()
+    source_name = models.CharField(max_length=50)
+    destination_name = models.CharField(max_length=50)
+    journey_date = models.DateField()
+    amount = models.DecimalField(max_digits=6, decimal_places=2)
+    booking_id = models.BigIntegerField()
