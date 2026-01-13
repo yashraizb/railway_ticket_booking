@@ -162,3 +162,28 @@ class Invoice(models.Model):
     amount = models.DecimalField(max_digits=6, decimal_places=2)
     booking_id = models.BigIntegerField()
     status = models.CharField(max_length=20, default=None, choices=StatusChoices.choices)
+
+
+class Refund(models.Model):
+
+    class StatusChoices(models.TextChoices):
+        PENDING = "Pending"
+        APPROVED = "Approved"
+        REJECTED = "Rejected"
+        REQUESTED = "Requested"
+        HALTED = "Halted"
+    
+    refund_id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    invoice = models.ForeignKey(
+        Invoice, on_delete=models.CASCADE, related_name="refunds", default=None
+    )
+    booking = models.ForeignKey(
+        Booking, on_delete=models.CASCADE, related_name="refundRequest", default=None
+    )
+    amount = models.DecimalField(max_digits=6, decimal_places=2)
+    approved_amount = models.DecimalField(max_digits=6, decimal_places=2)
+    requested_date = models.DateField(auto_now_add=True)
+    refund_date = models.DateField(null=True, blank=True, default=None)
+    status = models.CharField(max_length=20, default="Pending")
+    last_process = models.CharField(max_length=100, default=StatusChoices.PENDING)
+    approved_on = models.DateField(null=True, blank=True, default=None)

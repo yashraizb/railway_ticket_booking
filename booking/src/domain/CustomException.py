@@ -14,6 +14,8 @@ class CustomException(Exception):
             "TRAIN_FETCH_ERROR": 500,
             "BOOKING_NOT_FOUND": 404,
             "UNAUTHORIZED_CANCELLATION": 403,
+            "NOT_FOUND": 404,
+            "CANCELLATION_FAILED": 500
         }
         return mapping.get(self.name, 500)
 

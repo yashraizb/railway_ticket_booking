@@ -9,6 +9,7 @@ from .models import (
     Ticket,
     Booking,
     Invoice,
+    Refund,
 )
 
 # Register your models here
@@ -22,3 +23,4 @@ admin.site.register(RouteStation)
 admin.site.register(Ticket)
 admin.site.register(Booking)
 admin.site.register(Invoice)
+admin.site.register(Refund)

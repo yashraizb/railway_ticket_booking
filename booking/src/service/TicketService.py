@@ -13,12 +13,12 @@ class TicketService:
         for passenger in self.facade.bookingSerializer.validated_data["passengers"]:
             Ticket.objects.create(
                 coach_type=self.facade.bookingSerializer.validated_data["coach_type"],
-                seat_number=self.facade.seats[i],
+                seat_number=self.facade.seat_numbers[i],
                 passenger_name=passenger["name"],
                 passenger_age=passenger["age"],
                 passenger_gender=passenger["gender"],
-                booking_id=self.facade.bookingToInvoice.booking_id,
-                status=Ticket.StatusChoices.CONFIRMED if self.facade.seats[i] != "WL" else Ticket.StatusChoices.WAITING,
+                booking_id=self.facade.journeyDetails.bookingToInvoice.booking_id,
+                status=Ticket.StatusChoices.CONFIRMED if self.facade.seat_numbers[i] != "WL" else Ticket.StatusChoices.WAITING,
             )
             i += 1
 

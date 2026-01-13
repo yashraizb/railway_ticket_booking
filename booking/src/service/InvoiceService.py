@@ -1,6 +1,7 @@
 from booking.models import Invoice, Trip
 from booking.serializer import BookSeatSerializer
 from booking.src.domain.JourneyDetailHandler import JourneyDetailHandler
+from booking.src.domain.CustomException import CustomException
 
 
 class InvoiceService:
@@ -40,5 +41,7 @@ class InvoiceService:
     
     def cancelInvoice(self, booking_id):
         self.invoice = Invoice.objects.filter(booking_id=booking_id).first()
+        if not self.invoice:
+            raise CustomException("Invoice not found", "NOT_FOUND")
         self.invoice.status = Invoice.StatusChoices.CANCELLED
         self.invoice.save()
