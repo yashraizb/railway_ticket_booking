@@ -6,12 +6,13 @@ from .models import CustomUser
 
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
-    list_display = ('email', 'is_staff', 'is_active',)
+    list_display = ('email', 'first_name', 'last_name', 'age', 'gender', 'is_staff', 'is_active',)
     list_filter = ('is_staff', 'is_active',)
-    search_fields = ('email',)
+    search_fields = ('email', 'first_name', 'last_name', 'age', 'gender')
     ordering = ('email',)
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
+        ('Personal Info', {'fields': ('first_name', 'last_name', 'age', 'gender')}),
         ('Permissions', {'fields': ('is_staff', 'is_active')}),
     )
     add_fieldsets = (

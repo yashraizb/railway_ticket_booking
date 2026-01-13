@@ -50,6 +50,11 @@ class Seat(models.Model):
 
     No class methods are defined in this class.
     """
+
+    class StatusChoices(models.TextChoices):
+        AVAILABLE = "available"
+        BOOKED = "booked"
+
     seat_number = models.IntegerField()
     coach = models.ForeignKey(
         Coach, on_delete=models.CASCADE, related_name="seats"
@@ -61,6 +66,9 @@ class Seat(models.Model):
     journey_date = models.DateField()
     status = models.CharField(max_length=20, default="available")
     destination_station_sequence = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = ("seat_number", "coach", "journey_date", "train", "destination_station_sequence")
 
 
 class Station(models.Model):
@@ -101,29 +109,56 @@ class RouteStation(models.Model):
         unique_together = ("train", "station")
         ordering = ["sequence"]
 
-class Bookings(models.Model):
+class Ticket(models.Model):
+
+    class StatusChoices(models.TextChoices):
+        CANCELLED = "Cancelled"
+        CONFIRMED = "Confirmed"
+        WAITING = "Waiting"
+
     booking_id = models.BigIntegerField(default=0)
-    train_number = models.BigIntegerField()
-    source_name = models.CharField(max_length=50)
-    destination_name = models.CharField(max_length=50)
-    journey_date = models.DateField()
     coach_type = models.CharField(max_length=2)
     seat_number = models.IntegerField()
     passenger_name = models.CharField(max_length=50)
     passenger_age = models.IntegerField()
     passenger_gender = models.CharField(max_length=1)
+    status = models.CharField(max_length=20, default=None, choices=StatusChoices.choices)
 
 
-class BookingToInvoice(models.Model):
+class Booking(models.Model):
+
+    class StatusChoices(models.TextChoices):
+        CANCELLED = "Cancelled"
+        CONFIRMED = "Confirmed"
+        WAITING = "Waiting"
+        PARTIAL_CONFIRMED = "PartialConfirmed"
+        PARTIAL_CANCELLED = "PartialCancelled"
+
     booking_id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
     invoice_id = models.BigIntegerField(default=0)
+    user = models.ForeignKey(
+        'accounts.CustomUser', on_delete=models.CASCADE, related_name="bookings", default=None
+    )
+    source_station = models.ForeignKey(
+        Station, on_delete=models.CASCADE, related_name="booking_source_station", default=None
+    )
+    destination_station = models.ForeignKey(
+        Station, on_delete=models.CASCADE, related_name="booking_destination_station", default=None
+    )
+    journey_date = models.DateField()
+    status = models.CharField(max_length=20, default=None)
+    train = models.ForeignKey(
+        Train, on_delete=models.CASCADE, related_name="bookings", default=None
+    )
 
 
 class Invoice(models.Model):
+
+    class StatusChoices(models.TextChoices):
+        PAID = "Paid"
+        CANCELLED = "Cancelled"
+
     invoice_id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
-    train_number = models.BigIntegerField()
-    source_name = models.CharField(max_length=50)
-    destination_name = models.CharField(max_length=50)
-    journey_date = models.DateField()
     amount = models.DecimalField(max_digits=6, decimal_places=2)
     booking_id = models.BigIntegerField()
+    status = models.CharField(max_length=20, default=None, choices=StatusChoices.choices)

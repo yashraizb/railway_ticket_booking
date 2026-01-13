@@ -6,8 +6,8 @@ from .models import (
     Train,
     Station,
     RouteStation,
-    Bookings,
-    BookingToInvoice,
+    Ticket,
+    Booking,
     Invoice,
 )
 
@@ -19,6 +19,6 @@ admin.site.register(Seat)
 admin.site.register(Trip)
 admin.site.register(Station)
 admin.site.register(RouteStation)
-admin.site.register(Bookings)
-admin.site.register(BookingToInvoice)
+admin.site.register(Ticket)
+admin.site.register(Booking)
 admin.site.register(Invoice)

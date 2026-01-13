@@ -4,6 +4,7 @@ from django.db.models import Q, Count
 from booking.serializer import BookSeatSerializer
 from booking.models import Seat, Train, Station, RouteStation
 from booking.src.domain.JourneyDetailHandler import JourneyDetailHandler
+from booking.src.domain.CustomException import CustomException
 
 
 class MultipleSeats(BookingStrategy):
@@ -17,12 +18,15 @@ class MultipleSeats(BookingStrategy):
 
         try:
             train = Train.objects.get(number=train_number)
+            journeyDetails.set_train(train)
             source = Station.objects.get(name=source_name)
+            journeyDetails.set_src_station(source)
             destination = Station.objects.get(name=destination_name)
+            journeyDetails.set_dest_station(destination)
         except Train.DoesNotExist:
-            raise Exception("Train not found")
+            raise CustomException("Train not found", "TRAIN_NOT_FOUND")
         except Station.DoesNotExist:
-            raise Exception("Station not found")
+            raise CustomException("Station not found", "STATION_NOT_FOUND")
 
         src_stn = (
             RouteStation.objects.filter(train=train, station=source).first()
@@ -34,8 +38,8 @@ class MultipleSeats(BookingStrategy):
         )
 
         journeyDetails.set_journey_date(journey_date)
-        journeyDetails.set_src_station(src_stn)
-        journeyDetails.set_dest_station(dest_stn)
+        journeyDetails.set_src_route_station(src_stn)
+        journeyDetails.set_dest_route_station(dest_stn)
 
         list_seats = Seat.objects.filter(
             Q(destination_station_sequence__gt=src_stn.sequence)
@@ -53,10 +57,10 @@ class MultipleSeats(BookingStrategy):
         )
 
         if not available_seats.exists():
-            raise Exception("No available seats")
+            raise CustomException("No available seats for the requested train, date and coach", "NO_SEATS_AVAILABLE")
         
         if available_seats.count() < passenger_count:
-            raise Exception("Not enough available seats")
+            raise CustomException("Not enough available seats for the requested train, date and coach", "NOT_ENOUGH_SEATS")
 
         seat_numbers = []
         for i in range(passenger_count):
@@ -77,4 +81,41 @@ class MultipleSeats(BookingStrategy):
         for request in bookSerializer.validated_data["passengers"]:
             request["status"] = "assigned"
         
+        journeyDetails.seat_numbers = seat_numbers
+        
         return seat_numbers
+
+    def rollback(self, bookSerializer: BookSeatSerializer, journeyDetails: JourneyDetailHandler):
+        with transaction.atomic():
+            train_number = bookSerializer.validated_data["train_number"]
+            source_name = bookSerializer.validated_data["source"]
+            destination_name = bookSerializer.validated_data["destination"]
+            journey_date = bookSerializer.validated_data["journey_date"]
+            coach_type = bookSerializer.validated_data["coach_type"]
+
+            try:
+                train = Train.objects.get(number=train_number)
+                source = Station.objects.get(name=source_name)
+                destination = Station.objects.get(name=destination_name)
+            except Train.DoesNotExist:
+                raise CustomException("Train not found", "TRAIN_NOT_FOUND")
+            except Station.DoesNotExist:
+                raise CustomException("Station not found", "STATION_NOT_FOUND")
+
+            src_stn = (
+                RouteStation.objects.filter(train=train, station=source).first()
+            )
+            dest_stn = (
+                RouteStation.objects.filter(train=train, station=destination)
+                .first()
+            )
+
+            Seat.objects.select_for_update().filter(
+                Q(destination_station_sequence__gt=src_stn.sequence)
+                & Q(destination_station_sequence__lte=dest_stn.sequence),
+                train=train,
+                journey_date=journey_date,
+                coach__coach_type=coach_type,
+                status="booked",
+                seat_number__in=journeyDetails.seat_numbers,
+            ).update(status="available")

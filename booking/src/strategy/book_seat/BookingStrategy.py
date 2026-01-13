@@ -5,3 +5,7 @@ class BookingStrategy(ABC):
     @abstractmethod
     def book(self):
         pass
+
+    @abstractmethod
+    def rollback(self):
+        pass

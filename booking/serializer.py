@@ -26,3 +26,8 @@ class BookSeatSerializer(serializers.Serializer):
     destination = serializers.CharField(max_length=50, required=True)
     coach_type = serializers.CharField(max_length=20, required=True)
     passengers = PassengerSerializer(many=True, required=True)
+
+
+class CancelBookingSerializer(serializers.Serializer):
+    pnr = serializers.IntegerField(required=True)
+    passengers = PassengerSerializer(many=True, required=True)
