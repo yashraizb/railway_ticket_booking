@@ -133,7 +133,7 @@ The system is designed to handle **concurrent seat bookings** while preventing r
 
 **Yash Rai**
 
-- GitHub: [@yourusername](https://github.com/yashraizb)
+- GitHub: [@yashraizb](https://github.com/yashraizb)
 - LinkedIn: [Yash Rai](www.linkedin.com/in/yashrai0202)
 - Email: yashraizb@gmail.com
 
